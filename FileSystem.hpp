@@ -6,20 +6,22 @@
 #include "IODevice.hpp"
 
 namespace wfs {
-	const uint8_t MAGIC_NUMBERS[] = {
-		0x00, 0xc0, 0xff, 0xee,
-		0x00, 0x00, 0x00, 0x00,
-		0xf0, 0x0d, 0x13, 0x50,
-		0x00, 0x00, 0xbe, 0xef
+	const uint32_t MAGIC_NUMBERS[] = {
+		0x00c0ffee,
+		0x00000000,
+		0xf00d1350,
+		0x0000beef
 	};
 	class FileSystem
 	{
 		public:
-			typedef uint16_t block_table_entry_t;
-			struct __attribute__ ((__packed__)) file_entry_t {
+			typedef uint16_t BlockTableEntry;
+			struct __attribute__ ((__packed__)) FileEntry {
 				char filename[58];
-				block_table_entry_t start_block;
+				BlockTableEntry startBlock;
 				uint32_t size;
+
+				FileEntry(const char* filename = "", BlockTableEntry startBlock = 0, uint32_t size = 0);
 			};
 
 			FileSystem(std::shared_ptr<IODevice> dev);
@@ -28,22 +30,24 @@ namespace wfs {
 
 		private:
 
-			const static block_table_entry_t BLOCK_FREE = 0x0;
-			const static block_table_entry_t BLOCK_EOF = 0xFFFE;
+			constexpr static BlockTableEntry BLOCK_FREE = 0x0;
+			constexpr static BlockTableEntry BLOCK_EOF = 0xFFFE;
 
-			const static size_t MAGIC_NUMBER_SIZE = sizeof(MAGIC_NUMBERS);
-			const static size_t ROOT_DIRECTORY_SIZE = 0x1000;
-			const static size_t N_BLOCKS = 0x4000;
+			constexpr static size_t MAGIC_NUMBER_SIZE = sizeof(MAGIC_NUMBERS);
+			constexpr static size_t ROOT_DIRECTORY_SIZE = 0x1000;
+			constexpr static size_t N_BLOCKS = 0x4000;
+			constexpr static size_t BLOCK_TABLE_SIZE = N_BLOCKS * sizeof(BlockTableEntry);
 
-			const static off_t BLOCK_TABLE_START = MAGIC_NUMBER_SIZE + ROOT_DIRECTORY_SIZE + N_BLOCKS * sizeof(file_entry_t);
-			const static off_t ROOT_ENTRIES_START = MAGIC_NUMBER_SIZE;
+			constexpr static off_t ROOT_ENTRIES_START = MAGIC_NUMBER_SIZE;
+			constexpr static off_t BLOCK_TABLE_START = ROOT_ENTRIES_START + ROOT_DIRECTORY_SIZE;
+			constexpr static off_t DATA_AREA_START = BLOCK_TABLE_START + BLOCK_TABLE_SIZE;
 
 			std::shared_ptr<IODevice> backend;
 
-			off_t getBlockOffset(block_table_entry_t number);
-			block_table_entry_t readBlockTable(block_table_entry_t number);
-			void writeBlockTable(block_table_entry_t number, block_table_entry_t value);
+			off_t getBlockOffset(BlockTableEntry number);
+			BlockTableEntry readBlockTable(BlockTableEntry number);
+			void writeBlockTable(BlockTableEntry number, BlockTableEntry value);
 	};
-};
+}
 
 #endif
