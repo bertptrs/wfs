@@ -7,4 +7,4 @@ clean:
 	$(RM) *.o
 	$(RM) test
 
-test: test.cpp FileIODevice.o FileSystem.o
+test: test.cpp FileIODevice.o FileSystem.o MemIODevice.o
