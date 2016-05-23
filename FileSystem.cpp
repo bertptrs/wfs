@@ -7,7 +7,7 @@ using namespace wfs;
 
 static_assert(sizeof(FileSystem::FileEntry) == 64, "File entry should be correct size.");
 
-FileSystem::FileEntry::FileEntry(const char* argName, FileSystem::BlockTableEntry startBlock, uint32_t size) :
+FileSystem::FileEntry::FileEntry(const char* argName, BlockTableEntry startBlock, uint32_t size) :
 	startBlock(startBlock),
 	size(size)
 {
@@ -16,7 +16,8 @@ FileSystem::FileEntry::FileEntry(const char* argName, FileSystem::BlockTableEntr
 
 
 FileSystem::FileSystem(shared_ptr<IODevice> dev) :
-	backend(dev)
+	backend(dev),
+	blockTable(dev, BLOCK_TABLE_START)
 {
 }
 
@@ -32,28 +33,6 @@ void FileSystem::init()
 
 	// Write free block table
 	for (size_t i = 1; i <= N_BLOCKS; i++) {
-		writeBlockTable(i, BLOCK_FREE);
+		blockTable.write(i, BLOCK_FREE);
 	}
-}
-
-off_t FileSystem::getBlockOffset(BlockTableEntry no)
-{
-	assert(no > 0 && "Block should be valid.");
-
-	return BLOCK_TABLE_START + (no - 1) * sizeof(BlockTableEntry);
-}
-
-
-FileSystem::BlockTableEntry FileSystem::readBlockTable(FileSystem::BlockTableEntry no)
-{
-	BlockTableEntry value;
-
-	backend->read(getBlockOffset(no), value);
-
-	return value;
-}
-
-void FileSystem::writeBlockTable(FileSystem::BlockTableEntry no, FileSystem::BlockTableEntry value)
-{
-	backend->write(getBlockOffset(no), value);
 }

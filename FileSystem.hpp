@@ -12,10 +12,29 @@ namespace wfs {
 		0xf00d1350,
 		0x0000beef
 	};
+	typedef uint16_t BlockTableEntry;
+
+	class BlockTable {
+		public:
+			static constexpr size_t N_BLOCKS = 0x4000;
+			static constexpr BlockTableEntry BLOCK_FREE = 0;
+			static constexpr BlockTableEntry BLOCK_EOF = 0xfffe;
+
+			BlockTable(std::shared_ptr<IODevice> dev, off_t offset);
+
+			BlockTableEntry read(BlockTableEntry pos);
+			void write(BlockTableEntry pos, BlockTableEntry val);
+
+		private:
+			const off_t offset;
+			std::shared_ptr<IODevice> backend;
+
+			inline off_t getBlockOffset(BlockTableEntry pos) const;
+	};
+
 	class FileSystem
 	{
 		public:
-			typedef uint16_t BlockTableEntry;
 			struct __attribute__ ((__packed__)) FileEntry {
 				char filename[58];
 				BlockTableEntry startBlock;
@@ -43,10 +62,7 @@ namespace wfs {
 			constexpr static off_t DATA_AREA_START = BLOCK_TABLE_START + BLOCK_TABLE_SIZE;
 
 			std::shared_ptr<IODevice> backend;
-
-			off_t getBlockOffset(BlockTableEntry number);
-			BlockTableEntry readBlockTable(BlockTableEntry number);
-			void writeBlockTable(BlockTableEntry number, BlockTableEntry value);
+			BlockTable blockTable;
 	};
 }
 
