@@ -8,3 +8,7 @@ clean:
 	$(RM) test
 
 test: test.cpp FileIODevice.o FileSystem.o MemIODevice.o BlockTable.o
+	$(CXX) -o $@ $^
+
+test.cpp: $(wildcard tests/*.hpp)
+	cxxtestgen --error-printer -o $@ $^

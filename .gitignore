@@ -26,3 +26,7 @@
 *.exe
 *.out
 *.app
+
+# Unit testing related data
+test
+test.cpp
