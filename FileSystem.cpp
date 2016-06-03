@@ -36,3 +36,8 @@ void FileSystem::init()
 		blockTable.write(i, BLOCK_FREE);
 	}
 }
+
+off_t FileSystem::getBlockOffset(BlockTableEntry blockNo) const
+{
+	return DATA_AREA_START + BLOCK_SIZE * (blockNo - 1);
+}

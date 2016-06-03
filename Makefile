@@ -1,14 +1,23 @@
 CXX=g++
 CXXFLAGS=-Wall -Wextra -g -std=c++11 -O2
 
-all: test
+OBJS = FileIODevice.o \
+	   FileSystem.o \
+	   MemIODevice.o \
+	   BlockTable.o
+
+all: wfs
+
+wfs: wfs.cpp $(OBJS)
+
+test: runner
+	./$<
 
 clean:
 	$(RM) *.o
 	$(RM) test
 
-test: test.cpp FileIODevice.o FileSystem.o MemIODevice.o BlockTable.o
-	$(CXX) -o $@ $^
+runner: runner.cpp $(OBJS)
 
-test.cpp: $(wildcard tests/*.hpp)
+runner.cpp: $(wildcard tests/*.hpp)
 	cxxtestgen --error-printer -o $@ $^

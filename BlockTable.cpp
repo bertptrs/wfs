@@ -30,3 +30,74 @@ off_t BlockTable::getBlockOffset(BlockTableEntry pos) const
 
 	return offset + (pos - 1) * sizeof(BlockTableEntry);
 }
+
+BlockTableEntry BlockTable::allocate(size_t num, BlockTableEntry prev)
+{
+	BlockTableEntry firstBlock = BLOCK_EOF;
+	size_t free = 0;
+	for (BlockTableEntry i = 1; i < N_BLOCKS && free < num; i++) {
+		if (read(i) == BLOCK_FREE) {
+			free++;
+
+			if (firstBlock == BLOCK_EOF) {
+				firstBlock = i;
+			}
+		}
+	}
+
+	if (free < num) {
+		// Not enough free space, bail.
+		return BLOCK_EOF;
+	}
+
+	// Mark found space as taken, and correct the chain.
+	if (prev != BLOCK_FREE) {
+		write(prev, firstBlock);
+	}
+	free = 1;
+	BlockTableEntry prevBlock = firstBlock;
+	for (BlockTableEntry i = firstBlock + 1; free < num; i++) {
+		if (read(i) == BLOCK_FREE) {
+			write(i, prevBlock);
+			prevBlock = i;
+			free++;
+		}
+	}
+
+	write(prevBlock, BLOCK_EOF);
+
+	return firstBlock;
+}
+
+BlockTableEntry BlockTable::allocateContiguous(size_t num, BlockTableEntry prev)
+{
+	BlockTableEntry firstBlock = BLOCK_EOF;
+	size_t free = 0;
+	for (BlockTableEntry i = 1; i < N_BLOCKS && free < num; i++) {
+		if (read(i) == BLOCK_FREE) {
+			free++;
+
+			if (firstBlock == BLOCK_EOF) {
+				firstBlock = i;
+			}
+		} else {
+			free = 0;
+		}
+	}
+
+	if (free < num) {
+		// Not enough free space, bail.
+		return BLOCK_EOF;
+	}
+
+	// Mark found space as taken, and correct the chain.
+	if (prev != BLOCK_FREE) {
+		write(prev, firstBlock);
+	}
+	for (BlockTableEntry i = firstBlock + 1; i < firstBlock + num; i++) {
+		write(i - 1, i);
+	}
+	write(firstBlock + num - 1, BLOCK_EOF);
+
+	return firstBlock;
+}
