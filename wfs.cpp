@@ -1,6 +1,10 @@
 #include <memory>
 #include <cstring>
 #include <cassert>
+
+#include <unistd.h>
+#include <sys/types.h>
+
 #include "FileSystem.hpp"
 #include "FileIODevice.hpp"
 #include "Exceptions.hpp"
@@ -54,6 +58,8 @@ int wfs_getattr(const char *path, struct stat *stbuf)
 {
 	memset(stbuf, 0, sizeof(struct stat));
 
+	stbuf->st_uid = geteuid();
+	stbuf->st_gid = getegid();
 	if (!strcmp(path, "/")) {
 		// File is actually root.
 		stbuf->st_mode = S_IFDIR | 0755;
