@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <cstdint>
+#include <string>
 #include "IODevice.hpp"
 
 namespace wfs {
@@ -16,6 +17,22 @@ namespace wfs {
 	static constexpr size_t N_BLOCKS = 0x4000;
 	static constexpr BlockTableEntry BLOCK_FREE = 0;
 	static constexpr BlockTableEntry BLOCK_EOF = 0xfffe;
+
+	struct __attribute__ ((__packed__)) FileEntry {
+		char filename[58];
+		BlockTableEntry startBlock;
+		uint32_t size;
+
+		FileEntry(const char* filename = "", BlockTableEntry startBlock = 0, uint32_t size = 0);
+
+		constexpr static uint32_t DIR_FLAG = 1 << 31;
+
+		bool isEmpty() const;
+		bool isDir() const;
+		uint32_t getSize() const;
+
+		bool operator == (const std::string&);
+	};
 
 	class BlockTable {
 		public:
@@ -37,17 +54,13 @@ namespace wfs {
 	class FileSystem
 	{
 		public:
-			struct __attribute__ ((__packed__)) FileEntry {
-				char filename[58];
-				BlockTableEntry startBlock;
-				uint32_t size;
 
-				FileEntry(const char* filename = "", BlockTableEntry startBlock = 0, uint32_t size = 0);
-			};
 
 			FileSystem(std::shared_ptr<IODevice> dev);
 
 			void init();
+
+			FileEntry getFile(const std::string& filename);
 
 		private:
 			constexpr static size_t MAGIC_NUMBER_SIZE = sizeof(MAGIC_NUMBERS);
@@ -64,6 +77,7 @@ namespace wfs {
 
 			inline off_t getBlockOffset(BlockTableEntry blockNo) const;
 
+			FileEntry findFileInRootDir(const std::string& filename);
 	};
 }
 

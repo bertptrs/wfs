@@ -1,19 +1,38 @@
 #include <cassert>
 #include <cstring>
 #include "FileSystem.hpp"
+#include "Exceptions.hpp"
 
 using namespace std;
 using namespace wfs;
 
-static_assert(sizeof(FileSystem::FileEntry) == 64, "File entry should be correct size.");
+static_assert(sizeof(FileEntry) == 64, "File entry should be correct size.");
 
-FileSystem::FileEntry::FileEntry(const char* argName, BlockTableEntry startBlock, uint32_t size) :
+FileEntry::FileEntry(const char* argName, BlockTableEntry startBlock, uint32_t size) :
 	startBlock(startBlock),
 	size(size)
 {
 	strncpy(filename, argName, sizeof(filename));
 }
 
+bool FileEntry::operator ==(const string& othername) {
+	return !strncmp(othername.data(), filename, sizeof(filename));
+}
+
+bool FileEntry::isEmpty() const
+{
+	return filename[0] != '\0' || size == 0;
+}
+
+bool FileEntry::isDir() const
+{
+	return size & DIR_FLAG;
+}
+
+uint32_t FileEntry::getSize() const
+{
+	return size & (~DIR_FLAG);
+}
 
 FileSystem::FileSystem(shared_ptr<IODevice> dev) :
 	backend(dev),
@@ -40,4 +59,30 @@ void FileSystem::init()
 off_t FileSystem::getBlockOffset(BlockTableEntry blockNo) const
 {
 	return DATA_AREA_START + BLOCK_SIZE * (blockNo - 1);
+}
+
+FileEntry FileSystem::getFile(const string& filename) {
+	assert(filename.size() > 1 && filename[0] == '/');
+
+	return findFileInRootDir(filename);
+}
+
+FileEntry FileSystem::findFileInRootDir(const string& filename)
+{
+	FileEntry entry;
+	string nameToFind = filename.substr(0, filename.find('/'));
+
+	for (unsigned int i = 0; i < ROOT_DIRECTORY_SIZE / sizeof(FileEntry); i++) {
+		backend->read(ROOT_ENTRIES_START + i * sizeof(FileEntry), entry);
+
+		if (entry.isEmpty()) {
+			continue;
+		}
+
+		if (entry == filename) {
+			return entry;
+		}
+	}
+
+	throw NoSuchFileException();
 }
