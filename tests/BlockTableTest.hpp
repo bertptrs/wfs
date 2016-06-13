@@ -10,10 +10,26 @@ using namespace std;
 class BlockTableTest : public CxxTest::TestSuite
 {
 	public:
-		void testAllocate(void)
+
+		// Test for simple read/write in the blocktable.
+		void testReadWrite(void)
 		{
 			BlockTable blockTable(make_shared<MemIODevice>(), 0);
 
+			// Ensure there is nothing there.
+			TS_ASSERT_EQUALS(0, blockTable.read(42));
+
+			// Write a dummy value
+			blockTable.write(42, 0xbeef);
+
+			// Ensure its there.
+			TS_ASSERT_EQUALS(0xbeef, blockTable.read(42));
+		}
+
+		// Test the allocate method.
+		void testAllocate(void)
+		{
+			BlockTable blockTable(make_shared<MemIODevice>(), 0);
 			verifyEmpty(blockTable);
 
 			blockTable.write(2, 2); // Doesn't matter what we write, just not 0.
@@ -31,6 +47,7 @@ class BlockTableTest : public CxxTest::TestSuite
 			TS_ASSERT_EQUALS(BLOCK_EOF, blockTable.read(7));
 		}
 
+		// Test the allocate contiguous method.
 		void testAllocateContiguous(void)
 		{
 			BlockTable blockTable(make_shared<MemIODevice>(), 0);

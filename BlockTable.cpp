@@ -21,6 +21,7 @@ BlockTableEntry BlockTable::read(BlockTableEntry pos)
 
 void BlockTable::write(BlockTableEntry pos, BlockTableEntry val)
 {
+
 	backend->write(getBlockOffset(pos), val);
 }
 
