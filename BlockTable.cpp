@@ -103,3 +103,16 @@ BlockTableEntry BlockTable::allocateContiguous(size_t num, BlockTableEntry prev)
 
 	return firstBlock;
 }
+
+void BlockTable::free(BlockTableEntry start)
+{
+	while (start != BLOCK_EOF) {
+		assert(start >= 1 && start <= N_BLOCKS && "Corrupted blockchain.");
+
+		BlockTableEntry next = read(start);
+
+		write(start, BLOCK_FREE);
+
+		start = next;
+	}
+}

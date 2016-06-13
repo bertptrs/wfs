@@ -68,6 +68,32 @@ class BlockTableTest : public CxxTest::TestSuite
 			TS_ASSERT_EQUALS(BLOCK_EOF, blockTable.read(11));
 		}
 
+		// Test the free chain method.
+		void testFree(void)
+		{
+			BlockTable bt(make_shared<MemIODevice>(), 0);
+
+			bt.write(42, 41);
+			bt.write(41, 63);
+			bt.write(63, 255);
+			bt.write(255, 1);
+			bt.write(1, BLOCK_EOF);
+
+			bt.write(43, BLOCK_EOF);
+
+			bt.free(42);
+
+			// Ensure chain is freed.
+			TS_ASSERT_EQUALS(BLOCK_FREE, bt.read(42));
+			TS_ASSERT_EQUALS(BLOCK_FREE, bt.read(41));
+			TS_ASSERT_EQUALS(BLOCK_FREE, bt.read(63));
+			TS_ASSERT_EQUALS(BLOCK_FREE, bt.read(255));
+			TS_ASSERT_EQUALS(BLOCK_FREE, bt.read(1));
+
+			// Ensure no collateral.
+			TS_ASSERT_EQUALS(BLOCK_EOF, bt.read(43));
+		}
+
 	private:
 		void verifyEmpty(BlockTable& blockTable)
 		{

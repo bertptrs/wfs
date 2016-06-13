@@ -43,6 +43,7 @@ namespace wfs {
 
 			BlockTableEntry allocate(size_t number, BlockTableEntry prev = BLOCK_FREE);
 			BlockTableEntry allocateContiguous(size_t number, BlockTableEntry prev = BLOCK_FREE);
+			void free(BlockTableEntry start);
 
 		private:
 			const off_t offset;
