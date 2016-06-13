@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cstring>
 #include "FileIODevice.hpp"
 
 using namespace std;
@@ -14,6 +15,12 @@ void FileIODevice::read(size_t offset, size_t amount, void* buff)
 {
 	backend.seekg(offset);
 	backend.read((char*) buff, amount);
+
+	if (backend.eof()) {
+		// Did not read enough bytes. Set the remainder to zero.
+		size_t bytesRead = backend.gcount();
+		memset(((char*) buff) + bytesRead, 0, amount - bytesRead);
+	}
 }
 
 void FileIODevice::write(size_t offset, size_t amount, const void* buff)
