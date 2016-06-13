@@ -20,6 +20,7 @@ void FileIODevice::read(size_t offset, size_t amount, void* buff)
 		// Did not read enough bytes. Set the remainder to zero.
 		size_t bytesRead = backend.gcount();
 		memset(((char*) buff) + bytesRead, 0, amount - bytesRead);
+		backend.clear();
 	}
 }
 
