@@ -16,7 +16,8 @@ test: runner
 
 clean:
 	$(RM) *.o
-	$(RM) test
+	$(RM) wfs
+	$(RM) runner runner.cpp
 
 runner: runner.cpp $(OBJS)
 
