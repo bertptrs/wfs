@@ -26,6 +26,21 @@ class IODeviceTest {
 
 			dev.read(0x4, dataSize, buffer);
 			TS_ASSERT_SAME_DATA("llo world!\0\0", buffer, dataSize);
+
+			// Check if the system properly supports an entire WFS filesystem.
+			constexpr char entry = '*';
+			constexpr size_t maxPos = 16 // Magic numbers
+				+ 64 * 64 // root table entries
+				+ 0x4000 * 2 // Block table
+				+ 0x4000 * 512 // Blocks
+				-1 ; // Zero indexing
+
+			dev.write(maxPos, entry);
+			char readBack;
+			dev.read(maxPos, readBack);
+
+
+			TS_ASSERT_EQUALS(entry, readBack);
 		}
 
 };
