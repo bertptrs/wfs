@@ -58,7 +58,7 @@ BlockTableEntry BlockTable::allocate(size_t num, BlockTableEntry prev)
 	BlockTableEntry prevBlock = firstBlock;
 	for (BlockTableEntry i = firstBlock + 1; free < num; i++) {
 		if (read(i) == BLOCK_FREE) {
-			write(i, prevBlock);
+			write(prevBlock, i);
 			prevBlock = i;
 			free++;
 		}
@@ -81,6 +81,7 @@ BlockTableEntry BlockTable::allocateContiguous(size_t num, BlockTableEntry prev)
 				firstBlock = i;
 			}
 		} else {
+			firstBlock = BLOCK_EOF;
 			free = 0;
 		}
 	}
@@ -94,8 +95,8 @@ BlockTableEntry BlockTable::allocateContiguous(size_t num, BlockTableEntry prev)
 	if (prev != BLOCK_FREE) {
 		write(prev, firstBlock);
 	}
-	for (BlockTableEntry i = firstBlock + 1; i < firstBlock + num; i++) {
-		write(i - 1, i);
+	for (BlockTableEntry i = firstBlock; i < firstBlock + num - 1; i++) {
+		write(i, i + 1);
 	}
 	write(firstBlock + num - 1, BLOCK_EOF);
 

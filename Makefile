@@ -1,4 +1,3 @@
-CXX=g++
 CXXFLAGS=-Wall -Wextra -g -std=c++11 -O2 -D_FILE_OFFSET_BITS=64
 LDLIBS=-lfuse
 
