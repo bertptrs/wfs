@@ -28,6 +28,8 @@
 *.app
 
 # Unit testing related data
-test
-test.cpp
+runner
+runner.cpp
+
+# Final executable
 wfs
