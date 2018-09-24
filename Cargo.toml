@@ -4,4 +4,6 @@ version = "0.1.0"
 authors = ["Bert Peters <bert@bertptrs.nl>"]
 
 [dependencies]
-fuse = "0.3.1"
+fuse = "^0.3.1"
+libc = "^0.2.43"
+slice-cast = "^0.1.2"
