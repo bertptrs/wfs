@@ -1,0 +1,7 @@
+[package]
+name = "wfs"
+version = "0.1.0"
+authors = ["Bert Peters <bert@bertptrs.nl>"]
+
+[dependencies]
+fuse = "0.3.1"
