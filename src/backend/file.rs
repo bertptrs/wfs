@@ -3,6 +3,7 @@ use std::io::Result;
 use std::io::SeekFrom;
 use std::io::prelude::*;
 use std::fs::File;
+use std::fs::OpenOptions;
 
 pub struct FileBackend {
     file: File
@@ -13,6 +14,16 @@ impl FileBackend {
         FileBackend{
             file: file
         }
+    }
+
+    pub fn from_name(name: &str) -> Result<FileBackend> {
+        let file = OpenOptions::new()
+            .write(true)
+            .read(true)
+            .create(true)
+            .open(name)?;
+
+        Ok(FileBackend::from_file(file))
     }
 }
 
