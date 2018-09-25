@@ -4,6 +4,7 @@ extern crate slice_cast;
 
 use backend::Backend;
 use self::libc::c_int;
+use wfs::entry::FileEntry;
 
 #[derive(Default)]
 pub struct FileSystem<T: Backend> {
@@ -33,6 +34,10 @@ impl <T: Backend> FileSystem<T> {
             // Panic because this method cannot return error states.
             panic!("Invalid magic number");
         }
+    }
+
+    fn read_dir<'a>(&self, data: &'a[u8]) -> &'a[FileEntry] {
+        unsafe { slice_cast::cast(&data) }
     }
 
     pub fn from_backend(backend: T) -> FileSystem<T> {
