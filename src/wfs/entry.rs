@@ -64,7 +64,7 @@ mod tests {
             start_block: 42
         };
 
-        entry.name[..12].copy_from_slice(b"Hello world!\0");
+        entry.name[..13].copy_from_slice(b"Hello world!\0");
 
         assert_eq!("Hello world!", entry.name());
         assert_eq!(4, entry.size());
