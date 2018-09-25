@@ -64,9 +64,11 @@ impl <T: Backend> FileSystem<T> {
      * Load the File Allocation Table into memory
      */
     fn load_fat(&mut self) -> Result<(), c_int> {
-        let block_buf: &mut[u8] = unsafe { slice_cast::cast_mut(&mut self.fat) };
-        if let Err(_) = self.backend.read(BLOCK_TABLE_OFFSET, block_buf) {
-            panic!("Unable to read block table");
+        unsafe {
+            let block_buf: &mut[u8] = slice_cast::cast_mut(&mut self.fat);
+            if let Err(_) = self.backend.read(BLOCK_TABLE_OFFSET, block_buf) {
+                panic!("Unable to read block table");
+            }
         }
         Ok(())
     }
