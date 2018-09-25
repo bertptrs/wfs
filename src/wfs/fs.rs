@@ -1,6 +1,7 @@
 extern crate fuse;
 extern crate libc;
 extern crate slice_cast;
+extern crate time;
 
 use backend::Backend;
 use self::libc::c_int;
@@ -33,9 +34,17 @@ const MAGIC_CONST: [u32; 4] = [
     0x0000beef,
 ];
 
+const FILE_TIMESPEC: time::Timespec = time::Timespec{sec: 0, nsec: 0};
+const TTL_TIMESEC: time::Timespec = time::Timespec{sec: 60, nsec: 0};
+
 
 impl <T: Backend> FileSystem<T> {
 
+    /**
+     * Check the magic numbers in the file system.
+     *
+     * Will panic on error.
+     */
     fn magic_check(&mut self) -> Result<(), c_int> {
         let mut rbuf = [0u8; 16];
         if let Err(_) = self.backend.read(0, &mut rbuf) {
@@ -51,6 +60,9 @@ impl <T: Backend> FileSystem<T> {
         Ok(())
     }
 
+    /**
+     * Load the File Allocation Table into memory
+     */
     fn load_fat(&mut self) -> Result<(), c_int> {
         let block_buf: &mut[u8] = unsafe { slice_cast::cast_mut(&mut self.fat) };
         if let Err(_) = self.backend.read(BLOCK_TABLE_OFFSET, block_buf) {
@@ -63,6 +75,31 @@ impl <T: Backend> FileSystem<T> {
         unsafe { slice_cast::cast(&data) }
     }
 
+    fn produce_dir_attr(&self, ino: u64) -> fuse::FileAttr {
+        fuse::FileAttr{
+            ino: ino,
+            atime: FILE_TIMESPEC,
+            ctime: FILE_TIMESPEC,
+            crtime: FILE_TIMESPEC,
+            mtime: FILE_TIMESPEC,
+            size: match ino {
+                1 => 4096,
+                _ => BLOCK_SIZE as u64, // TODO: impl arbitrary directories
+            },
+            blocks: 0,
+            perm: 0o777,
+            kind: fuse::FileType::Directory,
+            nlink: 1,
+            uid: 0,
+            gid: 0,
+            rdev: 0,
+            flags: 0,
+        }
+    }
+
+    /**
+     * Construct a new file system, given the specified back-end.
+     */
     pub fn from_backend(backend: T) -> FileSystem<T> {
         FileSystem{
             backend: backend,
@@ -77,6 +114,15 @@ impl <T: Backend> fuse::Filesystem for FileSystem<T> {
     fn init(&mut self, _req: &fuse::Request) -> Result<(), c_int> {
         self.magic_check()?;
         self.load_fat()
+    }
+
+    fn getattr(&mut self, _req: &fuse::Request, ino: u64, reply: fuse::ReplyAttr) {
+        match ino {
+            1 => {
+                reply.attr(&TTL_TIMESEC, &self.produce_dir_attr(ino));
+            }
+            _ => reply.error(libc::ENOENT),
+        };
     }
 
 }

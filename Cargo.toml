@@ -7,3 +7,4 @@ authors = ["Bert Peters <bert@bertptrs.nl>"]
 fuse = "^0.3.1"
 libc = "^0.2.43"
 slice-cast = "^0.1.2"
+time = "^0.1"

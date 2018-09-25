@@ -10,7 +10,7 @@ fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
     let backend = FileBackend::from_name(&args[1])?;
     let fs = wfs::FileSystem::from_backend(backend);
-    let options = ["-o", "ro", "-o", "fsname=hello"]
+    let options = ["-o", "ro", "-o", "fsname=wfs"]
         .iter()
         .map(|o| o.as_ref())
         .collect::<Vec<&OsStr>>();
