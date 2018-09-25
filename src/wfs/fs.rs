@@ -141,6 +141,27 @@ impl <T: Backend> fuse::Filesystem for FileSystem<T> {
         };
     }
 
+    /**
+     * Check the availability of file system resouces.
+     *
+     * Our implementation considers every block to be an inode, even
+     * though it isn't.
+     */
+    fn statfs(&mut self, _req: &fuse::Request, _ino: u64, reply: fuse::ReplyStatfs) {
+        let free_blocks = self.fat.iter()
+            .filter(|x| **x == BLOCK_EMPTY)
+            .count();
+        reply.statfs(
+            TOTAL_BLOCKS as u64,
+            free_blocks as u64,
+            free_blocks as u64,
+            TOTAL_BLOCKS as u64,
+            free_blocks as u64,
+            BLOCK_SIZE as u32,
+            0,
+            0);
+    }
+
 }
 
 #[cfg(test)]
