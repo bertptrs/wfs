@@ -77,6 +77,17 @@ impl <T: Backend> FileSystem<T> {
         unsafe { slice_cast::cast(&data) }
     }
 
+    fn chain_length(&self, ino: u64) -> usize {
+        let mut i: usize = 0;
+        let mut cur = ino as usize;
+        while self.fat[cur - 2] != BLOCK_FINAL {
+            cur = self.fat[cur - 2] as usize;
+            i += 1;
+        }
+
+        return i;
+    }
+
     fn produce_dir_attr(&self, ino: u64) -> fuse::FileAttr {
         fuse::FileAttr{
             ino: ino,
@@ -86,7 +97,7 @@ impl <T: Backend> FileSystem<T> {
             mtime: FILE_TIMESPEC,
             size: match ino {
                 1 => 4096,
-                _ => BLOCK_SIZE as u64, // TODO: impl arbitrary directories
+                _ => self.chain_length(ino) as u64,
             },
             blocks: 0,
             perm: 0o777,
