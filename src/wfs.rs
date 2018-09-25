@@ -22,7 +22,7 @@ impl <T: Backend> FileSystem<T> {
     fn magic_check(&mut self) -> Result<(), c_int> {
         let mut rbuf = [0u8; 16];
         if let Err(_) = self.backend.read(0, &mut rbuf) {
-            return Err(libc::EINVAL)
+            panic!("Could not read magic number")
         }
 
         let magic_read: &[u32] = unsafe { slice_cast::cast(&rbuf) };
