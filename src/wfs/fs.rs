@@ -97,9 +97,12 @@ impl <T: Backend> FileSystem<T> {
             mtime: FILE_TIMESPEC,
             size: match ino {
                 1 => 4096,
+                _ => (self.chain_length(ino) * BLOCK_SIZE) as u64,
+            },
+            blocks: match ino {
+                1 => 0,
                 _ => self.chain_length(ino) as u64,
             },
-            blocks: 0,
             perm: 0o777,
             kind: fuse::FileType::Directory,
             nlink: 1,
